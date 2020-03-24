@@ -33,9 +33,9 @@ def read_config(arguFile):
     return arg_ini
 
 def run_patch(argDict,arg_ini):
-    print("INFO: Start write work shell.")
-    ref_dna = "%s/bwa_index_dna/hla_reference_dna.fasta" % (arg_ini.get("data","bwa_index"))
-    ref_rna = "%s/bwa_index_rna/hla_reference_rna.fasta" % (arg_ini.get("data","bwa_index"))
+    print("INFO: Start work.")
+    ref_dna = "%s/hla_reference_dna.fasta" % (arg_ini.get("data","bwa_index"))
+    ref_rna = "%s/hla_reference_rna.fasta" % (arg_ini.get("data","bwa_index"))
     bwa = arg_ini.get("tools","bwa")
     samtools = arg_ini.get("tools","samtools")
     python = arg_ini.get("tools","python")
@@ -56,25 +56,30 @@ def run_patch(argDict,arg_ini):
     
     f1 = argDict['f1']
     f2 = argDict['f2']
-    bam = "%s/%s.bam" % (argDict['outdir'],argDict['prefix'])
+    bam = "%s/%s.bam" % (bwa_path,argDict['prefix'])
     shellstr = ""
-    res
-    if argDict['seq_type'] == "RNA":
+    if argDict['type'].upper() == "RNA":
         ref = ref_rna
         ref_type = "rna"
-    else:
+    elif argDict['type'].upper() == "DNA":
         ref = ref_dna
         ref_type = "dna"
-
-    shellstr += "%s mem -M -t 8  %s  %s %s   |%s view -1 -b -S -F 256 -F 4 - > %s &&\n" % (bwa,samtools,ref,f1,f2,bam)
-    shellstr += "perl %s/optitype_reads_cuter.pl -b %s -o %s/%s  &&\n" % (basepath,bam,argDict['outdir'],argDict['prefix'])
+    else:
+        print("Type error, it can only be one of DNA or RNA.")
+        sys.exit(0)
+    shellstr += 'export PATH=\"%s/bin:$PATH\"' % basepath
+    shellstr += "%s mem -M -t 8  %s  %s %s   |%s view -1 -b -S -F 256 -F 4 - > %s &&\n" % (bwa,ref,f1,f2,samtools,bam)
+    shellstr += "perl %s/optitype_reads_cuter.pl -b %s -o %s/hla_reads/%s -s %s &&\n" % (basepath,bam,argDict['outdir'],argDict['prefix'],samtools)
     shellstr += "%s %s -i  %s/%s_R1.hla.fq.gz %s/%s_R2.hla.fq.gz --%s -v -o %s -p %s \n" % (python,optitype,hla_reads,argDict['prefix'],hla_reads,argDict['prefix'],ref_type,optitype_path,argDict['prefix'])
     samShell = open(sampleshellpath,"w")
     samShell.write(shellstr)
     samShell.close()
+    #errorlog,res = subprocess.getstatusoutput("bash %s" % samShell)
+    #if errorlog:
+    #    print("Running failed with the following error: %s" % (res))
     ##run
-
-    print("INFO: Finished.")
+    #else:
+    #    print("INFO: Finished.")
 
 if __name__ == '__main__':
     argv = sys.argv[1:]
@@ -105,19 +110,15 @@ if __name__ == '__main__':
                 sys.exit(0)
             argDict['f2']  = os.path.abspath(argDict['f2'] )
         elif opt in ("-t","--type"):
-            argDict['f2']  = arg
-            if not os.path.exists(argDict['f1'] ):
-                print("Error: FASTQ file 2 not exists.")
-                sys.exit(0)
-            argDict['f2']  = os.path.abspath(argDict['f2'] )
+            argDict['type']  = arg
         elif opt in ("-o", "--outdir"):
             argDict['outdir'] = arg
-            if not os.path.exists(argDict['outdir'] ):
+            if not os.path.exists(argDict['outdir']):
                 os.mkdir(argDict['outdir'] )
             argDict['outdir']  = os.path.abspath(argDict['outdir'] )
         elif opt in ("-p","--prefix"):
             argDict['prefix'] = arg
-         elif opt in ("-c","--config"):
+        elif opt in ("-c","--config"):
             argDict['config'] = arg
     
     arg_ini = read_config(argDict['config'])

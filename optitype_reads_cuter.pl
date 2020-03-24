@@ -9,28 +9,31 @@ GetOptions(
     "c:f" => \$cutoff,
     "b=s" => \$bam,
     "o=s" => \$outprefix,
+    "s=s" => \$samtools,
     "help|?" => \$help,
 );
 if (!defined $bam || !defined $outprefix ||$help){&usage;exit(0);}
 
 $cutoff ||= 300000;
+$samtools ||= "samtools";
 
 &main($bam, $cutoff,$outprefix);
 
 sub usage{
 print "
-	Usage: $0  < -b bam >  < -o outprefix >  [ -c 300000 ] 
+	Usage: $0  < -b bam >  < -o outprefix > [-s /ptah/to/samtools ] [ -c 300000 ] 
 	Options:
-        -o:<file>     the output file (Require)
-        -b:<file>     the input bam file (Require)
-        -c:[int]    the reads num cutoff(default 300000)
-        -help:   show this infomation\n";
+        -o:<file>       the output file (Require)
+        -b:<file>       the input bam file (Require)
+        -c:[int]        the reads num cutoff(default 300000)
+        -s:<path>       path for samtools
+        -help:          show this infomation.\n";
 }
 
 sub main{
     ($bam,$cutoff,$outprefix) =  @_;
     ## count reads save fractionr
-    $reads1_num = `samtools view -f 64 -F 256 $bam|wc -l`;
+    $reads1_num = `$samtools view -f 64 -F 256 $bam|wc -l`;
     chomp($reads1_num);
     $random_num = int(($cutoff/$reads1_num)*10);
 
@@ -49,9 +52,9 @@ sub main{
 sub cutreads{
     ($bam,$outfq,$random_num,$end) = @_;
     if($end eq "r1"){
-        open BAM,"samtools view -f 64 -F 256 $bam|" or die $!;
+        open BAM,"$samtools view -f 64 -F 256 $bam|" or die $!;
     }else{
-        open BAM,"samtools view -f 128 -F 256 $bam|" or die $!;
+        open BAM,"$samtools view -f 128 -F 256 $bam|" or die $!;
     }
     open FQ,"| gzip >$outfq" or die $!;
     while(<BAM>){
@@ -71,9 +74,9 @@ sub cutreads{
 sub printreads{
     ($bam,$outfq,$random_num,$end) = @_;
     if($end eq "r1"){
-        open BAM,"samtools view -f 64 -F 256 $bam|" or die $!;
+        open BAM,"$samtools view -f 64 -F 256 $bam|" or die $!;
     }else{
-        open BAM,"samtools view -f 128 -F 256 $bam|" or die $!;
+        open BAM,"$samtools view -f 128 -F 256 $bam|" or die $!;
     }
     open FQ,"| gzip >$outfq" or die $!;
     while(<BAM>){
