@@ -4,6 +4,7 @@
 import sys, os, argparse, re, math, glob,subprocess
 import getopt,configparser
 basepath = os.path.dirname(__file__)
+basepath = os.path.abspath(basepath)
 sys.path.append(basepath)
 
 def USAGE(script):
@@ -67,7 +68,7 @@ def run_patch(argDict,arg_ini):
     else:
         print("Type error, it can only be one of DNA or RNA.")
         sys.exit(0)
-    shellstr += 'export PATH=\"%s/bin:$PATH\"' % basepath
+    shellstr += "export PATH=\"%s/bin:$PATH\"\n" % basepath
     shellstr += "%s mem -M -t 8  %s  %s %s   |%s view -1 -b -S -F 256 -F 4 - > %s &&\n" % (bwa,ref,f1,f2,samtools,bam)
     shellstr += "perl %s/optitype_reads_cuter.pl -b %s -o %s/hla_reads/%s -s %s &&\n" % (basepath,bam,argDict['outdir'],argDict['prefix'],samtools)
     shellstr += "%s %s -i  %s/%s_R1.hla.fq.gz %s/%s_R2.hla.fq.gz --%s -v -o %s -p %s \n" % (python,optitype,hla_reads,argDict['prefix'],hla_reads,argDict['prefix'],ref_type,optitype_path,argDict['prefix'])
