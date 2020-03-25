@@ -10,9 +10,9 @@ sys.path.append(basepath)
 def USAGE(script):
     helpMess = '''
      ProgramName:\t%s
-         Version:\tv0.1
+         Version:\tv0.2
          Contact:\tyijian@yucebio.com
-    Program Date:\t2019.10.14
+    Program Date:\t2020.03.14
           Modify:\t-
      Description:\tThis program is used to filter HLA related reads before run optitype.
            Usage:\tpython3 %s --f1 <fastq1> --f2 <fastq2> -o <outdir>
@@ -39,17 +39,12 @@ def run_patch(argDict,arg_ini):
     ref_rna = "%s/hla_reference_rna.fasta" % (arg_ini.get("data","bwa_index"))
     bwa = arg_ini.get("tools","bwa")
     samtools = arg_ini.get("tools","samtools")
-    python = arg_ini.get("tools","python")
-    optitype = arg_ini.get("tools","optitype")
     bwa_path = os.path.join(argDict['outdir'],'bwa')
     if not os.path.exists(bwa_path):
         os.mkdir(bwa_path)
     hla_reads = os.path.join(argDict['outdir'],'hla_reads')
     if not os.path.exists(hla_reads):
         os.mkdir(hla_reads)
-    optitype_path =  os.path.join(argDict['outdir'],'optitype')
-    if not os.path.exists(optitype_path):
-        os.mkdir(optitype_path)
     shellpath = os.path.join(argDict['outdir'],'shell')
     if not os.path.exists(shellpath):
         os.mkdir(shellpath)
@@ -70,8 +65,7 @@ def run_patch(argDict,arg_ini):
         sys.exit(0)
     shellstr += "export PATH=\"%s/bin:$PATH\"\n" % basepath
     shellstr += "%s mem -M -t 8  %s  %s %s   |%s view -1 -b -S -F 256 -F 4 - > %s &&\n" % (bwa,ref,f1,f2,samtools,bam)
-    shellstr += "perl %s/optitype_reads_cuter.pl -b %s -o %s/hla_reads/%s -s %s &&\n" % (basepath,bam,argDict['outdir'],argDict['prefix'],samtools)
-    shellstr += "%s %s -i  %s/%s_R1.hla.fq.gz %s/%s_R2.hla.fq.gz --%s -v -o %s -p %s \n" % (python,optitype,hla_reads,argDict['prefix'],hla_reads,argDict['prefix'],ref_type,optitype_path,argDict['prefix'])
+    shellstr += "perl %s/optitype_reads_cuter.pl -b %s -o %s/hla_reads/%s -s %s \n" % (basepath,bam,argDict['outdir'],argDict['prefix'],samtools)
     samShell = open(sampleshellpath,"w")
     samShell.write(shellstr)
     samShell.close()
