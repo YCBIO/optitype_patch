@@ -4,9 +4,21 @@ Date: Jan 2020
 Version: 0.1
 
 ## Introduction
-When running OptiType, if there are too many reads for typing, a memory error will occur. The error message is "/home/osboxes/seqan/include/seqan/basic/basic_exception.h:363 FAILED!". This error was frequently mentioned on [GitHub](https://github.com/FRED-2/OptiType/issues/71).
+When running OptiType, if there are too many reads for typing, memory error will occur. The error message are 
+1.
+```bash
+"/home/osboxes/seqan/include/seqan/basic/basic_exception.h:363 FAILED!". This error was frequently mentioned on [GitHub](https://github.com/FRED-2/OptiType/issues/71).
+```
+2.
+```bash
+  File "/mnt/cfs/project/test_freshman/yijian/HLA/lib/python2.7/site-packages/pandas/core/indexing.py", line 1869, in _getitem_axis
+    return self._getbool_axis(key, axis=axis)
+  File "/mnt/cfs/project/test_freshman/yijian/HLA/lib/python2.7/site-packages/pandas/core/indexing.py", line 1520, in _getbool_axis
+    raise self._exception(detail)
+KeyError: MemoryError()
+```
 
-Therefore, we wrote a patch to avoid this problem. Firstly, extracting the reads that can be aligned to the HLA sequence. Secondly, using OptiType to perform HLA typing on the extracted reads. For samples that can be analyzed normally, HLA typing results of with and without patches are the same. For the failed sample, it can do HLA typing successfully.
+Therefore, we wrote a patch to avoid these problem. Firstly, extracting the reads that can be aligned to the HLA sequence. Secondly, using OptiType to perform HLA typing on the extracted reads. For samples that can be analyzed normally, HLA typing results of with and without patches are the same. For the failed sample, it can do HLA typing successfully.
 
 ## Requirements
 1.  [Python 3.7](https://www.python.org/)
